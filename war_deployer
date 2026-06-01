@@ -1,0 +1,44 @@
+#!/bin/bash
+set -e
+
+if [ ! -d "apache-tomcat-10.1.55" ]; then
+echo "Tomcat not found. Installing..."
+
+curl -LO https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.55/bin/apache-tomcat-10.1.55.tar.gz
+
+tar -xzf apache-tomcat-10.1.55.tar.gz
+
+rm -f apache-tomcat-10.1.55.tar.gz
+
+fi
+
+TOMCAT="./apache-tomcat-10.1.55"
+WAR_SOURCE="./app/build/libs"
+APP_NAME="HotServlet"
+
+echo "Stopping Tomcat..."
+"$TOMCAT/bin/shutdown.sh" || true
+
+sleep 5
+
+echo "Cleaning old deployment..."
+rm -rf "$TOMCAT/webapps/$APP_NAME"
+rm -f "$TOMCAT/webapps/"*.war
+
+echo "Building project..."
+./gradlew clean build
+
+WAR_FILE=$(find "$WAR_SOURCE" -name "*.war" | head -n 1)
+
+if [ ! -f "$WAR_FILE" ]; then
+echo "WAR not found!"
+exit 1
+fi
+
+echo "Deploying $WAR_FILE..."
+cp "$WAR_FILE" "$TOMCAT/webapps/"
+
+echo "Starting Tomcat..."
+"$TOMCAT/bin/startup.sh"
+
+echo "Deployment complete."
