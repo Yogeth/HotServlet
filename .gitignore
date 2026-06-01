@@ -10,4 +10,4 @@ build
 #tomcat
 apache-tomcat-10.1.55/
 
-.vscode
+.vscode/
